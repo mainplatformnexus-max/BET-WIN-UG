@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /bets/{betId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId && 
+                       (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['matches', 'status', 'updatedAt', 'winningsCredited', 'winningsAmount', 'winningsCreditedAt']));
+      }
+      
+      // Transactions subcollection
+      match /transactions/{transactionId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      // Withdrawals subcollection
+      match /withdrawals/{withdrawalId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId && 
+                       (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'internalReference', 'customerReference', 'provider', 'providerTransactionId', 'completedAt', 'updatedAt']));
+      }
+      
+      // Deposits subcollection
+      match /deposits/{depositId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        allow update: if request.auth != null && request.auth.uid == userId && 
+                       (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'internalReference', 'customerReference', 'provider', 'providerTransactionId', 'charge', 'completedAt', 'updatedAt']));
+      }
+    }
+  }
+}
